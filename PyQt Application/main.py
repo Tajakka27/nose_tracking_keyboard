@@ -13,10 +13,8 @@ class MyWindow(QMainWindow):
         
         # Define Widgets...
         central_widget = self.centralwidget
-        central_layout = self.verticalLayout
         
         # Edit widget UI...
-        central_widget.setLayout(central_layout)
 
 
 
