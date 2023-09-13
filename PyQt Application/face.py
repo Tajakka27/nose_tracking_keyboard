@@ -24,6 +24,9 @@ class FaceMeshWidget(QWidget):
             min_tracking_confidence=0.5
         )
 
+        self.p_nose_x = self.p_nose_y = 0 
+        self.p_lip = 0
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(5)
@@ -35,24 +38,30 @@ class FaceMeshWidget(QWidget):
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(image)
-
+        
         if results.multi_face_landmarks:
+            
             for face_landmarks in results.multi_face_landmarks:
+
                 for id, lm in enumerate(face_landmarks.landmark):
-
-                    if id in [4]: # simply check the ID
-                        # print(lm)
-                        ih, iw, ic = image.shape
-                        x,y,z= int(lm.x*iw),int(lm.y*ih),int(lm.z*ic)
-                        # print(id,x,y,z)
-                        cv2.circle(image, (x, y), radius=3, color=(225, 0, 100), thickness=1)
-
-                    if id in [13, 14]: # simply check the ID
-                        # print(lm)
-                        ih, iw, ic = image.shape
-                        x,y,z= int(lm.x*iw),int(lm.y*ih),int(lm.z*ic)
-                        # print(id,x,y,z)
-                        cv2.circle(image, (x, y), radius=3, color=(0, 225, 100), thickness=1)
+                    ih, iw, ic = image.shape
+                    if id == 4:                            
+                        nose_x, nose_y = int(lm.x*iw),int(lm.y*ih)
+                        cv2.circle(image, (nose_x, nose_y), radius=3, color=(225, 0, 100), thickness=1)
+                    elif id == 13:
+                        lip_u_x, lip_u_y = int(lm.x*iw),int(lm.y*ih)                     
+                        cv2.circle(image, (lip_u_x, lip_u_y), radius=3, color=(0, 225, 100), thickness=1)
+                    elif id == 14:
+                        lip_d_x, lip_d_y = int(lm.x*iw),int(lm.y*ih)                     
+                        cv2.circle(image, (lip_d_x, lip_d_y), radius=3, color=(0, 225, 100), thickness=1)
+                
+            if abs(lip_d_y-lip_u_y)+abs(lip_d_x-lip_u_x) > 4:
+                if self.p_lip == 0:
+                    print("Clicked", lip_d_x-lip_u_x, lip_d_y-lip_u_y)
+                self.p_lip = 1
+            else:
+                self.p_lip = 0
+                    
 
         h, w, ch = image.shape
         bytes_per_line = ch * w
