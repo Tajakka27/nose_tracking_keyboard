@@ -18,17 +18,24 @@ class MyWindow(QMainWindow):
         self.video_layout= self.findChild(QVBoxLayout, 'verticalLayout_3')
         self.start_video_button = self.findChild(QPushButton, 'startVideoButton')
         self.end_video_button = self.findChild(QPushButton, 'endVideoButton')
+        self.calibrate_button = self.findChild(QPushButton, 'calibrateButton')
         
         # Edit widget UI...
+        self.calibrate_button.hide()
         self.end_video_button.hide()
         self.start_video_button.clicked.connect(self.startVideo)
         self.end_video_button.clicked.connect(self.endVideo)
+        self.calibrate_button.clicked.connect(self.calibrate)
 
     def startVideo(self):
         self.video = FaceMeshWidget()
         self.video_layout.addWidget(self.video)
         self.start_video_button.hide()
+        self.calibrate_button.show()
         self.end_video_button.show()
+        
+    def calibrate(self):
+        self.video.calibrate()
     
     def endVideo(self):        
         self.video.cap.release()
@@ -39,6 +46,7 @@ class MyWindow(QMainWindow):
         self.video = None
         
         self.start_video_button.show()
+        self.calibrate_button.hide()
         self.end_video_button.hide()
         
         

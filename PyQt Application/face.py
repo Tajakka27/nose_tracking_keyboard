@@ -3,6 +3,7 @@ import mediapipe as mp
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from math import sqrt
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -24,8 +25,9 @@ class FaceMeshWidget(QWidget):
             min_tracking_confidence=0.5
         )
 
-        self.p_nose_x = self.p_nose_y = 0 
-        self.p_lip = 0
+        self.p_lip = False
+        self.calibrated = False
+        self.nose_calibration = [0, 0, 0, 0]
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
@@ -39,15 +41,32 @@ class FaceMeshWidget(QWidget):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(image)
         
-        if results.multi_face_landmarks:
-            
+        if results.multi_face_landmarks:            
             for face_landmarks in results.multi_face_landmarks:
-
                 for id, lm in enumerate(face_landmarks.landmark):
                     ih, iw, ic = image.shape
-                    if id == 4:                            
+                    
+                    if id == 4:
                         nose_x, nose_y = int(lm.x*iw),int(lm.y*ih)
                         cv2.circle(image, (nose_x, nose_y), radius=3, color=(225, 0, 100), thickness=1)
+                    
+                    elif id == 102:
+                        nose_l_x, nose_l_y = int(lm.x*iw),int(lm.y*ih)
+                        cv2.circle(image, (nose_l_x, nose_l_y), radius=3, color=(225, 0, 100), thickness=1)
+                    
+                    elif id == 331:
+                        nose_r_x, nose_r_y = int(lm.x*iw),int(lm.y*ih)
+                        cv2.circle(image, (nose_r_x, nose_r_y), radius=3, color=(225, 0, 100), thickness=1)
+                    
+                    elif id == 164:
+                        nose_d_x, nose_d_y = int(lm.x*iw),int(lm.y*ih)
+                        cv2.circle(image, (nose_d_x, nose_d_y), radius=3, color=(225, 0, 100), thickness=1)
+                    
+                    elif id == 197:
+                        nose_u_x, nose_u_y = int(lm.x*iw),int(lm.y*ih)
+                        cv2.circle(image, (nose_u_x, nose_u_y), radius=3, color=(225, 0, 100), thickness=1)
+                        
+                        
                     elif id == 13:
                         lip_u_x, lip_u_y = int(lm.x*iw),int(lm.y*ih)                     
                         cv2.circle(image, (lip_u_x, lip_u_y), radius=3, color=(0, 225, 100), thickness=1)
@@ -55,13 +74,8 @@ class FaceMeshWidget(QWidget):
                         lip_d_x, lip_d_y = int(lm.x*iw),int(lm.y*ih)                     
                         cv2.circle(image, (lip_d_x, lip_d_y), radius=3, color=(0, 225, 100), thickness=1)
                 
-            if abs(lip_d_y-lip_u_y)+abs(lip_d_x-lip_u_x) > 4:
-                if self.p_lip == 0:
-                    print("Clicked", lip_d_x-lip_u_x, lip_d_y-lip_u_y)
-                self.p_lip = 1
-            else:
-                self.p_lip = 0
-                    
+            self.checkLips(lip_d_y, lip_u_y, lip_d_x, lip_u_x)
+            self.checkNose(nose_x, nose_y, nose_l_x, nose_l_y, nose_r_x, nose_r_y, nose_d_x, nose_d_y, nose_u_x, nose_u_y)
 
         h, w, ch = image.shape
         bytes_per_line = ch * w
@@ -73,3 +87,37 @@ class FaceMeshWidget(QWidget):
         self.cap.release()
         self.timer.stop()
         event.accept()
+        
+    def checkLips(self, lip_d_y, lip_u_y, lip_d_x, lip_u_x):
+        if abs(lip_d_y-lip_u_y)+abs(lip_d_x-lip_u_x) > 4:
+            if not self.p_lip:
+                print("Clicked", lip_d_x-lip_u_x, lip_d_y-lip_u_y)
+            self.p_lip = True
+        else:
+            self.p_lip = False
+            
+    def calibrate(self):
+        self.calibrated = False
+            
+    def checkNose(self, x, y, l_x, l_y, r_x, r_y, d_x, d_y, u_x, u_y):
+        delta_l = sqrt((x - l_x) * (x - l_x) + (y - l_y) * (y - l_y))
+        delta_r = sqrt((x - r_x) * (x - r_x) + (y - r_y) * (y - r_y))
+        delta_u = sqrt((x - u_x) * (x - u_x) + (y - u_y) * (y - u_y))
+        delta_d = sqrt((x - d_x) * (x - d_x) + (y - d_y) * (y - d_y))
+        
+        if not self.calibrated:
+            self.calibrated = True
+            self.nose_calibration[0] = delta_l
+            self.nose_calibration[1] = delta_r
+            self.nose_calibration[2] = delta_u
+            self.nose_calibration[3] = delta_d
+            print(self.nose_calibration[0], self.nose_calibration[1],self.nose_calibration[2],self.nose_calibration[3])
+        
+        if delta_l-self.nose_calibration[0] > 5:
+            print("Left: ", delta_l)
+        if delta_r-self.nose_calibration[1] > 5:
+            print("Right: ", delta_r)
+        if self.nose_calibration[2]-delta_u > 5:
+            print("Up: ", delta_u)
+        if self.nose_calibration[3]-delta_d > 3:
+            print("Down: ", delta_d)
