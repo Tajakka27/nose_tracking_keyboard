@@ -38,27 +38,21 @@ class FaceMeshWidget(QWidget):
 
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
-                mp_drawing.draw_landmarks(
-                    image=image,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_TESSELATION,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_tesselation_style()
-                )
-                mp_drawing.draw_landmarks(
-                    image=image,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_CONTOURS,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style()
-                )
-                mp_drawing.draw_landmarks(
-                    image=image,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_IRISES,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_iris_connections_style()
-                )
+                for id, lm in enumerate(face_landmarks.landmark):
+
+                    if id in [4]: # simply check the ID
+                        # print(lm)
+                        ih, iw, ic = image.shape
+                        x,y,z= int(lm.x*iw),int(lm.y*ih),int(lm.z*ic)
+                        # print(id,x,y,z)
+                        cv2.circle(image, (x, y), radius=3, color=(225, 0, 100), thickness=1)
+
+                    if id in [13, 14]: # simply check the ID
+                        # print(lm)
+                        ih, iw, ic = image.shape
+                        x,y,z= int(lm.x*iw),int(lm.y*ih),int(lm.z*ic)
+                        # print(id,x,y,z)
+                        cv2.circle(image, (x, y), radius=3, color=(0, 225, 100), thickness=1)
 
         h, w, ch = image.shape
         bytes_per_line = ch * w
