@@ -1,0 +1,3 @@
+cd TAJAKKA/Script/activate
+cd ..
+python main.py
