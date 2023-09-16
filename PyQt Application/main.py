@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUi
 import sys
-
 from face import *
 
 
@@ -23,6 +22,8 @@ class MyWindow(QMainWindow):
         # Edit widget UI...
         self.calibrate_button.hide()
         self.end_video_button.hide()
+        
+        # Button Controls
         self.start_video_button.clicked.connect(self.startVideo)
         self.end_video_button.clicked.connect(self.endVideo)
         self.calibrate_button.clicked.connect(self.calibrate)

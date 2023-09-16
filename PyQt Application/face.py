@@ -87,6 +87,9 @@ class FaceMeshWidget(QWidget):
         self.cap.release()
         self.timer.stop()
         event.accept()
+            
+    def calibrate(self):
+        self.calibrated = False
         
     def checkLips(self, lip_d_y, lip_u_y, lip_d_x, lip_u_x):
         if abs(lip_d_y-lip_u_y)+abs(lip_d_x-lip_u_x) > 4:
@@ -96,14 +99,11 @@ class FaceMeshWidget(QWidget):
         else:
             self.p_lip = False
             
-    def calibrate(self):
-        self.calibrated = False
-            
     def checkNose(self, x, y, l_x, l_y, r_x, r_y, d_x, d_y, u_x, u_y):
-        delta_l = sqrt((x - l_x) * (x - l_x) + (y - l_y) * (y - l_y))
-        delta_r = sqrt((x - r_x) * (x - r_x) + (y - r_y) * (y - r_y))
-        delta_u = sqrt((x - u_x) * (x - u_x) + (y - u_y) * (y - u_y))
-        delta_d = sqrt((x - d_x) * (x - d_x) + (y - d_y) * (y - d_y))
+        delta_l = sqrt((x - l_x) ** 2 + (y - l_y) ** 2)
+        delta_r = sqrt((x - r_x) ** 2 + (y - r_y) ** 2)
+        delta_u = sqrt((x - u_x) ** 2 + (y - u_y) ** 2)
+        delta_d = sqrt((x - d_x) ** 2 + (y - d_y) ** 2)
         
         if not self.calibrated:
             self.calibrated = True
