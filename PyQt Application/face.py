@@ -1,4 +1,6 @@
 import cv2
+import pyautogui
+import threading
 import mediapipe as mp
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -17,6 +19,11 @@ class FaceMeshWidget(QWidget):
         self.video_label = QLabel(self)
         self.layout.addWidget(self.video_label)
         
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = False
+        
         self.cap = cv2.VideoCapture(0)
         self.face_mesh = mp_face_mesh.FaceMesh(
             max_num_faces=1,
@@ -32,6 +39,12 @@ class FaceMeshWidget(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(5)
+
+        # Create a thread for mouse control
+        self.mouse_control_thread = threading.Thread(target=self.mouse_control)
+        self.mouse_control_thread.daemon = True  # The thread will terminate when the main program exits
+        self.mouse_control_thread.start()
+
         
     def update_frame(self):
         success, image = self.cap.read()
@@ -112,12 +125,35 @@ class FaceMeshWidget(QWidget):
             self.nose_calibration[2] = delta_u
             self.nose_calibration[3] = delta_d
             print(self.nose_calibration[0], self.nose_calibration[1],self.nose_calibration[2],self.nose_calibration[3])
+            
+        self.left = self.right = self.up = self.down = False
         
         if delta_l-self.nose_calibration[0] > 5:
             print("Left: ", delta_l)
+            self.left = True
         if delta_r-self.nose_calibration[1] > 5:
             print("Right: ", delta_r)
+            self.right = True
         if self.nose_calibration[2]-delta_u > 5:
             print("Up: ", delta_u)
+            self.up = True
         if self.nose_calibration[3]-delta_d > 3:
             print("Down: ", delta_d)
+            self.down = True
+            
+            
+            
+    def mouse_control(self):
+        while True:
+            if self.left:
+                for _ in range(5):
+                    pyautogui.moveRel(-5, 0)
+            if self.right:
+                for _ in range(5):
+                    pyautogui.moveRel(5, 0)
+            if self.up:
+                for _ in range(5):
+                    pyautogui.moveRel(0, -5)
+            if self.down:
+                for _ in range(5):
+                    pyautogui.moveRel(0, 5)
