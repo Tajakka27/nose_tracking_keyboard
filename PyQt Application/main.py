@@ -4,7 +4,7 @@ from PyQt5.uic import loadUi
 import sys
 
 from face import *
-
+import subprocess
 
 
 # The Main Frame class...
@@ -49,7 +49,17 @@ class MyWindow(QMainWindow):
         self.calibrate_button.hide()
         self.end_video_button.hide()
         
+
+    def startTyping(self):
+        # self.pages.setCurrentWidget(self.keyboard_page)
+         try:
+            # Run the 'keyboard.py' script as a separate process
+            subprocess.Popen(['python', 'keyboard.py'])
+         except Exception as e:
+            # Handle any exceptions here
+            print(f"Error: {str(e)}")
         
+
     
 if __name__ == "__main__":
     app = QApplication(sys.argv)
