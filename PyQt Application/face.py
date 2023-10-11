@@ -108,6 +108,7 @@ class FaceMeshWidget(QWidget):
         if abs(lip_d_y-lip_u_y)+abs(lip_d_x-lip_u_x) > 4:
             if not self.p_lip:
                 print("Clicked", lip_d_x-lip_u_x, lip_d_y-lip_u_y)
+                pyautogui.click(clicks=1) 
             self.p_lip = True
         else:
             self.p_lip = False
